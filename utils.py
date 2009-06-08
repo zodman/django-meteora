@@ -1,9 +1,10 @@
 from django.utils import simplejson
 from django.http import HttpResponse
 from django.shortcuts import _get_queryset 
-from meteora import Meteora
+
 
 def json( convert ):
+    print convert
     return HttpResponse(simplejson.dumps(convert), mimetype="text/plain")
 
 def get_object_or_404(klass, *args, **kwargs):
