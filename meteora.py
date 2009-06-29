@@ -1,12 +1,12 @@
 from django.utils import simplejson
 from django.http import HttpResponse
-from django.shortcuts import _get_queryset 
+from django.shortcuts import _get_queryset
 from django.utils.translation import ugettext_lazy as _
 # Compatible with meteora 0.6
 from utils import json
 
 class Meteora:
-    """ 
+    """
         Meteora Class
 
         @success(bool) for send errorMessage as False and successMessage with True
@@ -25,9 +25,9 @@ class Meteora:
     def __init__(self, success = None, message = None ):
         self.message = {}
         self.execute_js= []
-      
+
         if success is None and message is None:
-            return 
+            return
 
         if success is False:
             self.message["errorMessage"]= message
@@ -37,19 +37,19 @@ class Meteora:
             self.message["successMessage"]= message
             if self.message.has_key("errorMessage"):
                 del self.message["errorMessage"]
- 
+
 
     def bubble(self, id, message ):
-        """ 
+        """
             Show a bubbly across json respose
             @id(str) input where bubble will show
             @message(str) message
-            
+
 
             m = Meteora()
             m.bubble("id_field","Bar!")
             return m.json_response()
-            
+
 
             http://meteora.astrata.com.mx/pages/documentation/control-bubble
         """
@@ -61,9 +61,9 @@ class Meteora:
             it always will return for json encode.
         """
         return json(self.message)
-        
+
     def more_execute(self, execute):
-        """ 
+        """
             add More execute comandas
 
             m = Meteora()
@@ -89,31 +89,19 @@ class Meteora:
             self.message["execute"] = "".join(self.execute_js).replace("\n",'')
         self.execute_js = []
 
-    def form_invalid(self, table_id, form ):
-        """ 
-            @table_id(str) id of table to replace
-            @form(obj) form instanced
-
-            For show datas on form ...... FF only. Not work on IE
-            <table id="table_id">
-                 {{ form }}
-            </table>
-            
-            f = BlahForm()
-            if f.is_valid():
-                pass
-            else:
-                m = Meteora(False,"Form invalid")
-                m.form_invalid("table_id",f)
-                return m.json_response()
-
+    def form_invalid(self,form ):
         """
-        self.execute("$('%s').innerHTML='<table>%s</table>';" % ( table_id, form.as_table() ) )
+        """
+        if not form.is_valid():
+            for id,errors in form.errors.items():
+                for error in errors:
+                    self.bubble("id_" + id,error.decode("UTF"))
+        #self.execute("$('%s').innerHTML='<table>%s</table>';" % ( table_id, form.as_table() ) )
 
     #Notebooks def
     def notebook_close_page(self, notebook, id ):
         """
-            Close a page from a notebook 
+            Close a page from a notebook
             @notebook(str) id of notebook
             @id page ID for close
 
@@ -126,8 +114,8 @@ class Meteora:
         self.execute_js.append(" var nb = document.%s; nb.closePage('%s');" % ( notebook, id ) )
         self.execute()
     def notebook_select_page(self, notebook, id ):
-        """ 
-            Select a page from a notebook 
+        """
+            Select a page from a notebook
 
             @notebook(str) id of notebook
             @id page ID for close
@@ -140,36 +128,36 @@ class Meteora:
         """
         self.execute_js.append(" var nb = document.%s; nb.selectPage('%s');" % (notebook,id) )
         self.execute()
-    
+
     # jsonRpc Core  defs
     # http://meteora.astrata.com.mx/pages/documentation/core-jsonrpc
     def redirectTo(self, url ):
-        """ 
-            @url(str) format: "/blah/url"  or "http://google.com"
+        """
+            @url(str) format: "/blah/url"  or "http://google.com" or app view
 
             m = Meteora()
             m.redirectTo("/foo/bar")
             return m.json_response()
-            
+
         """
         self.message["redirectTo"] = url
         return self
 
     def update_object(self, object_id, view):
         self.message['updateObject'] = {'objectId': object_id, 'data' : view}
-        
+
     def update_object_url(self, object_id, url ):
-        self.message['updateObject'] = {'objectId': object_id, 'dataSource' : url}   
-        
+        self.message['updateObject'] = {'objectId': object_id, 'dataSource' : url}
+
     def delete_object(self, object_id):
         self.message['deleteObject'] = object_id
-       
+
     def error_message(self, string):
         self.message['errorMessage'] = string
-       
+
     def hide_object(self, object_id):
         self.message['hideObject'] = object_id
-        
+
     def show_object(self, object_id):
         self.message['showObject'] = object_id
 
